@@ -19,3 +19,10 @@ Enrollment, Student, Submission, Assignment
 *Many Assignments to one Section. (One-to-Many)
 
 Made an example SMS E/R Diagram
+Added attributes to each entity/table
+Recorded E/R Diagram to Presentation
+
+Made practice UML Diagram:
+Student, Instructor, and Admin with each having different access/use cases.
+
+
