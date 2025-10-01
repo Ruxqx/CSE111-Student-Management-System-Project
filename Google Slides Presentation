@@ -1,6 +1,21 @@
 Presentation for Phase 1
 https://docs.google.com/presentation/d/160w4wlZQz9qXjlQZ8ouPxOiDI0viInsfcLOhalNfzEs/edit?usp=sharing
+
 Tuesday September 16
 Created Google Slides
 Added 4 slides for Project Tile and Title requirements
 
+Wednesday, October 1
+8 Tables:
+Course, Section, InstructorSection, Instructor,
+Enrollment, Student, Submission, Assignment
+
+6 Relationships:
+*One Course offered in many Sections. (One-to-Many)
+*Many Instructors teaching in many Sections. (via InstructionSection||Many-to-Many)
+*Many Students enrolling in many Sections. (via Enrollment||Many-to-Many)
+*One Student submits many Submissions. (One-to-Many)
+*Many Submissions of one Assignment.(One-to-Many)
+*Many Assignments to one Section. (One-to-Many)
+
+Made an example SMS E/R Diagram
