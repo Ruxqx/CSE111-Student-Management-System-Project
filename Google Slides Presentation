@@ -30,4 +30,8 @@ Converted the ER Diagram to Relation Tables
 Added more attributes in the ER Diagram
 Pasted a picture of Relation Tables into presentation.
 
-
+TA assistance tips:
+Add an overview for UML cases
+Add connections for UML diagram instead of having 3 separate tings
+ER diagram is fine
+Fix many to many connections inside the Relational Diagram. One to Many between Student to Enrollment
