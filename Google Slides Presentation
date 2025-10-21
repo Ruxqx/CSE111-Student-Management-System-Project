@@ -40,8 +40,12 @@ Tuesday, October 14
 Drew another UML Use Case Diagram
 Showed it to Brian, need it to be more specific
 For example, although a Student and a Teacher can View Grades, will a student be able to modify it or not?
-
 Learn more about what each table is in real life, for example maybe changing Section to Classes
 
 Monday, October 20
 Added summaries to Main Use Cases, UML Diagram, and E/R Diagram
+
+Tuesday, October 21
+Made an even more specific UML diagram that includes all viewing, creating, updating, and deleting permissions for all 3 roles.
+Included more specific restrictions such as students can only view/update their own student info and submissions.
+Added new UML Diagram to the slides.
