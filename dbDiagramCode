@@ -1,0 +1,74 @@
+// https://dbdiagram.io/d
+Table course{
+    c_id integer [primary key]
+    name string
+    desc string
+}
+
+Table section{
+    section_id integer [primary key]
+    c_id integer
+    year integer
+    semester string
+}
+
+Table instructorSection{
+    section_id integer [primary key]
+    i_id integer [primary key]
+    role string
+}
+
+Table instructor{
+    i_id integer [primary key]
+    name string
+    office string
+    email string
+}
+
+Table enrollment{
+    enroll_id integer [primary key]
+    student_id integer
+    section_id integer
+    enroll_date string
+    grade string
+}
+
+Table student{
+    student_id integer [primary key]
+    name string
+    major string
+    enroll_year string
+    email string
+}
+
+Table submission{
+    sub_id integer [primary key]
+    student_id integer
+    assign_id integer
+    status string
+    score integer
+    submit_date string
+}
+
+Table assignment{
+    assign_id integer [primary key]
+    section_id integer
+    title string
+    due_date string
+    desc string
+}
+
+Ref offered_in:section.c_id>course.c_id
+
+Ref belongs : section.section_id < instructorSection.section_id
+Ref belongs : instructor.i_id < instructorSection.i_id
+
+Ref assigned_in:section.section_id<assignment.section_id
+
+Ref enrolls : enrollment.student_id > student.student_id
+Ref in : enrollment.section_id > section.section_id
+
+Ref submits : student.student_id < submission.student_id
+
+Ref submission_of : assignment.assign_id < submission.assign_id
+
