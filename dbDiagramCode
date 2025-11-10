@@ -63,13 +63,14 @@ Table officeHours{
 
 Table user{
   user_id integer [primary key]
+  linked_id integer
   username string
   password string
-  linked_id integer
+  role string
 }
 
-Ref linked:user.linked_id-student.student_id
-Ref linked:user.linked_id-instructor.i_id
+Ref linked:instructor.i_id-user.linked_id
+Ref linked:student.student_id-user.linked_id
 
 
 Ref offers:course.dept_id>department.dept_id
@@ -86,6 +87,9 @@ Ref has : instructor.i_id < officeHours.i_id
 
 Ref enrolls : enrollment.student_id > student.student_id
 Ref in : enrollment.section_id > section.section_id
+
+
+
 
 
 
