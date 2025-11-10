@@ -1,6 +1,7 @@
 // https://dbdiagram.io/d
 Table course{
     c_id integer [primary key]
+    dept_id integer
     name string
     desc string
 }
@@ -15,14 +16,17 @@ Table section{
 Table instructorSection{
     section_id integer [primary key]
     i_id integer [primary key]
-    role string
+    role_in_section string
 }
 
 Table instructor{
     i_id integer [primary key]
+    dept_id integer
     name string
     office string
     email string
+    role string
+
 }
 
 Table enrollment{
@@ -41,34 +45,49 @@ Table student{
     email string
 }
 
-Table submission{
-    sub_id integer [primary key]
-    student_id integer
-    assign_id integer
-    status string
-    score integer
-    submit_date string
+Table department{
+    dept_id integer [primary key]
+    name string
+    building string
+    chair_id integer
 }
 
-Table assignment{
-    assign_id integer [primary key]
-    section_id integer
-    title string
-    due_date string
-    desc string
+Table officeHours{
+    oh_id integer [primary key]
+    i_id integer
+    day string
+    start_time string
+    end_time string
+    location string
 }
+
+Table user{
+  user_id integer [primary key]
+  username string
+  password string
+  linked_id integer
+}
+
+Ref linked:user.linked_id-student.student_id
+Ref linked:user.linked_id-instructor.i_id
+
+
+Ref offers:course.dept_id>department.dept_id
+Ref has:instructor.dept_id>department.dept_id
+Ref has:instructor.i_id-department.chair_id
+
 
 Ref offered_in:section.c_id>course.c_id
 
 Ref belongs : section.section_id < instructorSection.section_id
 Ref belongs : instructor.i_id < instructorSection.i_id
+Ref has : instructor.i_id < officeHours.i_id
 
-Ref assigned_in:section.section_id<assignment.section_id
 
 Ref enrolls : enrollment.student_id > student.student_id
 Ref in : enrollment.section_id > section.section_id
 
-Ref submits : student.student_id < submission.student_id
 
-Ref submission_of : assignment.assign_id < submission.assign_id
+
+
 
