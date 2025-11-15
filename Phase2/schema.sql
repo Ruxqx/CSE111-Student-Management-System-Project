@@ -1,3 +1,6 @@
+-- Enable foreign keys in SQLite
+PRAGMA foreign_keys = ON;
+
 -- =========================
 -- 1️⃣ Department
 -- =========================
