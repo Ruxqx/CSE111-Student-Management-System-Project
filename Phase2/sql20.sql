@@ -84,15 +84,12 @@ FROM department d -- Join the department table with the instructor table to find
 JOIN instructor i ON d.chair_id = i.i_id;
 
 -- 13. Find all students enrolled in Dr. Alice Johnson's sections
--- Join student, enrollment, section, and instructorSection tables to get students in sections taught by a specific instructor
--- Use DISTINCT to avoid duplicate student names
--- Filter by the instructor's ID (101 for Dr. Alice Johnson)
-SELECT DISTINCT st.name
-FROM student st
+SELECT DISTINCT st.name -- Use DISTINCT to avoid duplicate student names
+FROM student st -- Join student, enrollment, section, and instructorSection tables to get students in sections taught by a specific instructor
 JOIN enrollment e ON st.student_id = e.student_id
 JOIN section s ON e.section_id = s.section_id
-JOIN instructorSection isec ON s.section_id = isec.section_id
-WHERE isec.i_id = 50001;
+JOIN instructorSection isec ON s.section_id = isec.section_id 
+WHERE isec.i_id = 50001; -- Filter by the instructor's ID 
 
 -- 14. Update a student grade
 -- Update the 'grade' column in the enrollment table to 'A' for the enrollment with ID 400002
@@ -122,24 +119,17 @@ SELECT username, role
 FROM user_account;
 
 -- 19. List all courses taught by professors (not assistants)
--- Join course, section, instructorSection, and instructor tables
--- Select distinct course names where the instructor's role is 'Professor'
-SELECT DISTINCT c.name
+SELECT DISTINCT c.name 
 FROM course c
-JOIN section s ON c.c_id = s.c_id
+JOIN section s ON c.c_id = s.c_id -- Join course, section, instructorSection, and instructor tables
 JOIN instructorSection isec ON s.section_id = isec.section_id
 JOIN instructor i ON i.i_id = isec.i_id
-WHERE i.role = 'Professor';
+WHERE i.role = 'Professor'; -- Select distinct course names where the instructor's role is 'Professor'
 
 -- 20. Show total enrollments per course
--- Join course, section, and enrollment tables
--- Use LEFT JOIN to include courses even if they have no enrollments
--- Count the number of enrollments for each course
--- Group results by course name
--- Having more than 3 enrollments just for fun
-SELECT c.name, COUNT(e.enroll_id) AS total_enrolled
+SELECT c.name, COUNT(e.enroll_id) AS total_enrolled -- Count the number of enrollments for each course
 FROM course c
-JOIN section s ON c.c_id = s.c_id
-LEFT JOIN enrollment e ON s.section_id = e.section_id
-GROUP BY c.name
-having count(e.enroll_id)>=3;
+JOIN section s ON c.c_id = s.c_id -- Join course, section, and enrollment tables
+LEFT JOIN enrollment e ON s.section_id = e.section_id -- Use LEFT JOIN to include courses even if they have no enrollments
+GROUP BY c.name -- Group results by course name
+having count(e.enroll_id)>=3; -- Having more than 3 enrollments 
