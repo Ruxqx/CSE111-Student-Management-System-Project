@@ -61,15 +61,22 @@ SELECT section_id, AVG(
 FROM enrollment
 GROUP BY section_id;
 
+
 -- 11. Find all Teaching Assistants
-SELECT * FROM instructor WHERE role = 'Teaching Assistant';
+-- Select all columns from the instructor table where the role is 'Teaching Assistant'
+SELECT * 
+FROM instructor 
+WHERE role = 'Teaching Assistant';
 
 -- 12. Show department chairs
-SELECT d.name AS department, i.name AS chair
-FROM department d
+SELECT d.name AS department, i.name AS chair -- Select the department name and the name of the instructor who is the chair
+FROM department d -- Join the department table with the instructor table to find the chair of each department
 JOIN instructor i ON d.chair_id = i.i_id;
 
 -- 13. Find all students enrolled in Dr. Alice Johnson's sections
+-- Join student, enrollment, section, and instructorSection tables to get students in sections taught by a specific instructor
+-- Use DISTINCT to avoid duplicate student names
+-- Filter by the instructor's ID (101 for Dr. Alice Johnson)
 SELECT DISTINCT st.name
 FROM student st
 JOIN enrollment e ON st.student_id = e.student_id
@@ -78,21 +85,34 @@ JOIN instructorSection isec ON s.section_id = isec.section_id
 WHERE isec.i_id = 101;
 
 -- 14. Update a student grade
-UPDATE enrollment SET grade = 'A+' WHERE enroll_id = 502;
+-- Update the 'grade' column in the enrollment table to 'A+' for the enrollment with ID 502
+UPDATE enrollment 
+SET grade = 'A+' 
+WHERE enroll_id = 502;
 
 -- 15. Delete a student record
-DELETE FROM student WHERE student_id = 404;
+-- Delete the student from the student table whose student_id is 404
+DELETE FROM student 
+WHERE student_id = 404;
 
 -- 16. Add a new section for "Data Structures"
-INSERT INTO section VALUES (305, 202, 2025, 'Spring');
+-- Insert a new row into the section table with values for section_id, course_id, year, and semester
+INSERT INTO section 
+VALUES (305, 202, 2025, 'Spring');
 
--- 17. Assign Dr. Alice Johnson to new section
-INSERT INTO instructorSection VALUES (305, 101, 'Lead Instructor');
+-- 17. Assign Dr. Alice Johnson to the new section
+-- Insert a row into instructorSection linking instructor 101 (Dr. Alice Johnson) to section 305 as 'Lead Instructor'
+INSERT INTO instructorSection 
+VALUES (305, 101, 'Lead Instructor');
 
 -- 18. Show all user accounts and their linked roles
-SELECT username, role FROM user_account;
+-- Select the username and role from the user_account table to see all accounts and what role they have
+SELECT username, role 
+FROM user_account;
 
 -- 19. List all courses taught by professors (not assistants)
+-- Join course, section, instructorSection, and instructor tables
+-- Select distinct course names where the instructor's role is 'Professor'
 SELECT DISTINCT c.name
 FROM course c
 JOIN section s ON c.c_id = s.c_id
@@ -101,6 +121,10 @@ JOIN instructor i ON i.i_id = isec.i_id
 WHERE i.role = 'Professor';
 
 -- 20. Show total enrollments per course
+-- Join course, section, and enrollment tables
+-- Use LEFT JOIN to include courses even if they have no enrollments
+-- Count the number of enrollments for each course
+-- Group results by course name
 SELECT c.name, COUNT(e.enroll_id) AS total_enrolled
 FROM course c
 JOIN section s ON c.c_id = s.c_id
