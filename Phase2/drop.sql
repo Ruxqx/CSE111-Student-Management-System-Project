@@ -1,0 +1,9 @@
+DROP TABLE department;
+DROP TABLE instructor;
+DROP TABLE course;
+DROP TABLE section;
+DROP TABLE instructorSection;
+DROP TABLE student;
+DROP TABLE enrollment;
+DROP TABLE officehours;
+DROP TABLE user_account;
