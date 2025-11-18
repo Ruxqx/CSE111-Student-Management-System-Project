@@ -5,8 +5,17 @@ WHERE username = 'jdoe' AND password = 'hashedpassword1';
 -- 1. List all departments
 SELECT * FROM department;
 
--- 2. Find all instructors in the Computer Science department
+-- 2. Find all staff in the Computer Science department
 SELECT name FROM instructor WHERE dept_id = 1;
+--more complex way via subquery
+SELECT name 
+FROM instructor
+WHERE dept_id = (
+    SELECT dept_id 
+    FROM department 
+    WHERE name = 'Computer Science'
+);
+
 
 -- 3. List all courses with their department names
 SELECT c.name AS course, d.name AS department
@@ -16,19 +25,21 @@ JOIN department d ON c.dept_id = d.dept_id;
 -- 4. Find all sections taught in Spring 2025
 SELECT * FROM section WHERE semester = 'Spring' AND year = 2025;
 
--- 5. Show instructors and their assigned sections
+-- 5. Show all staff and their assigned sections
 SELECT i.name, s.section_id, c.name AS course
 FROM instructor i
 JOIN instructorSection isec ON i.i_id = isec.i_id
 JOIN section s ON s.section_id = isec.section_id
-JOIN course c ON c.c_id = s.c_id;
+JOIN course c ON c.c_id = s.c_id
+order by c.name;
 
 -- 6. List students and their enrolled courses
 SELECT st.name AS student, c.name AS course
 FROM enrollment e
 JOIN student st ON e.student_id = st.student_id
 JOIN section s ON e.section_id = s.section_id
-JOIN course c ON s.c_id = c.c_id;
+JOIN course c ON s.c_id = c.c_id
+order by c.name;
 
 -- 7. Find students with grade 'A'
 SELECT st.name, c.name AS course, e.grade
@@ -43,24 +54,23 @@ SELECT major, COUNT(*) AS total_students
 FROM student
 GROUP BY major;
 
--- 9. Show office hours for Dr. Alice Johnson
+-- 9. Show office hours for Dr. Smith
 SELECT day, start_time, end_time, location
 FROM officeHours
-WHERE i_id = 101;
+WHERE i_id = 50001;
 
 -- 10. Get average grade per section (simple example)
 SELECT section_id, AVG(
     CASE grade
-        WHEN 'A' THEN 4.0
-        WHEN 'A-' THEN 3.7
-        WHEN 'B+' THEN 3.3
-        WHEN 'B' THEN 3.0
+        WHEN 'A' THEN 4
+        WHEN 'B' THEN 3
+        WHEN 'C' THEN 2
+        WHEN 'D' THEN 1
         ELSE 0
     END
 ) AS avg_gpa
 FROM enrollment
 GROUP BY section_id;
-
 
 -- 11. Find all Teaching Assistants
 -- Select all columns from the instructor table where the role is 'Teaching Assistant'
@@ -82,28 +92,29 @@ FROM student st
 JOIN enrollment e ON st.student_id = e.student_id
 JOIN section s ON e.section_id = s.section_id
 JOIN instructorSection isec ON s.section_id = isec.section_id
-WHERE isec.i_id = 101;
+WHERE isec.i_id = 50001;
 
 -- 14. Update a student grade
--- Update the 'grade' column in the enrollment table to 'A+' for the enrollment with ID 502
+-- Update the 'grade' column in the enrollment table to 'A' for the enrollment with ID 400002
 UPDATE enrollment 
-SET grade = 'A+' 
-WHERE enroll_id = 502;
+SET grade = 'A' 
+WHERE enroll_id = 400002;
 
 -- 15. Delete a student record
--- Delete the student from the student table whose student_id is 404
-DELETE FROM student 
-WHERE student_id = 404;
+-- Delete the student from the student table whose student_id is 100002
+delete from enrollment where student_id=100002;
+DELETE FROM student WHERE student_id = 100002;
+
 
 -- 16. Add a new section for "Data Structures"
 -- Insert a new row into the section table with values for section_id, course_id, year, and semester
 INSERT INTO section 
-VALUES (305, 202, 2025, 'Spring');
+VALUES (20021, 1002, 2025, 'Spring');
 
--- 17. Assign Dr. Alice Johnson to the new section
--- Insert a row into instructorSection linking instructor 101 (Dr. Alice Johnson) to section 305 as 'Lead Instructor'
+-- 17. Assign Dr. Johnson to new section
+-- Insert a row into instructorSection linking instructor 50002 (Dr. Alice Johnson) to section 20021 as 'Lead Instructor'
 INSERT INTO instructorSection 
-VALUES (305, 101, 'Lead Instructor');
+VALUES (20021, 50002, 'Lead Instructor');
 
 -- 18. Show all user accounts and their linked roles
 -- Select the username and role from the user_account table to see all accounts and what role they have
@@ -125,8 +136,10 @@ WHERE i.role = 'Professor';
 -- Use LEFT JOIN to include courses even if they have no enrollments
 -- Count the number of enrollments for each course
 -- Group results by course name
+-- Having more than 3 enrollments just for fun
 SELECT c.name, COUNT(e.enroll_id) AS total_enrolled
 FROM course c
 JOIN section s ON c.c_id = s.c_id
 LEFT JOIN enrollment e ON s.section_id = e.section_id
-GROUP BY c.name;
+GROUP BY c.name
+having count(e.enroll_id)>=3;
