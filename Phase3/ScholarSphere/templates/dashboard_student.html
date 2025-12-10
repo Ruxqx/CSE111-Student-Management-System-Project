@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Student Dashboard</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        table { border-collapse: collapse; width: 100%; margin-bottom: 20px; }
+        th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        h2 { margin-top: 40px; }
+        form { margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+    <h1>Welcome, {{ student.name }}!</h1>
+
+    <!-- ENROLLED COURSES -->
+    <h2>My Courses</h2>
+    {% if enrollments %}
+        <table>
+            <tr>
+                <th>Course</th>
+                <th>Section ID</th>
+                <th>Year</th>
+                <th>Semester</th>
+                <th>Grade</th>
+            </tr>
+            {% for e in enrollments %}
+            <tr>
+                <td>{{ e.course_name }}</td>
+                <td>{{ e.section_id }}</td>
+                <td>{{ e.year }}</td>
+                <td>{{ e.semester }}</td>
+                <td>{{ e.grade or "N/A" }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    {% else %}
+        <p>You are not enrolled in any courses yet.</p>
+    {% endif %}
+
+    <!-- ADD SECTION -->
+    <h2>Enroll in a Section</h2>
+    <form action="/enrollments/add" method="post">
+        <input type="hidden" name="student_id" value="{{ student.student_id }}">
+        <label for="section_id">Section:</label>
+        <select name="section_id" required>
+            {% for s in sections %}
+                <option value="{{ s.section_id }}">{{ s.course_name }} - {{ s.semester }} {{ s.year }}</option>
+            {% endfor %}
+        </select>
+        <label for="enroll_date">Enroll Date:</label>
+        <input type="date" name="enroll_date" required>
+        <button type="submit">Enroll</button>
+    </form>
+
+    <!-- INSTRUCTOR INFO -->
+    <h2>Instructors</h2>
+    {% if instructor_info %}
+        <table>
+            <tr>
+                <th>Instructor Name</th>
+                <th>Email</th>
+                <th>Office</th>
+                <th>Section ID</th>
+            </tr>
+            {% for i in instructor_info %}
+            <tr>
+                <td>{{ i.name }}</td>
+                <td>{{ i.email }}</td>
+                <td>{{ i.office }}</td>
+                <td>{{ i.section_id }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    {% else %}
+        <p>No instructor info available.</p>
+    {% endif %}
+
+    <!-- OFFICE HOURS -->
+    <h2>Instructor Office Hours</h2>
+    {% if office_hours %}
+        <table>
+            <tr>
+                <th>Instructor</th>
+                <th>Day</th>
+                <th>Start Time</th>
+                <th>End Time</th>
+                <th>Location</th>
+            </tr>
+            {% for oh in office_hours %}
+            <tr>
+                <td>{{ oh.name }}</td>
+                <td>{{ oh.day }}</td>
+                <td>{{ oh.start_time }}</td>
+                <td>{{ oh.end_time }}</td>
+                <td>{{ oh.location }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+    {% else %}
+        <p>No office hours available.</p>
+    {% endif %}
+
+    <a href="/logout">Logout</a>
+</body>
+</html>

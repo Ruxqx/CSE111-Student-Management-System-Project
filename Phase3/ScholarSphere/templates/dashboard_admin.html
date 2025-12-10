@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Admin Dashboard</title>
+</head>
+<body>
+<h1>Admin Dashboard</h1>
+<a href="/logout">Logout</a>
+
+<h2>Users</h2>
+<table border="1">
+<tr><th>ID</th><th>Email</th><th>Role</th><th>Action</th></tr>
+{% for u in users %}
+<tr>
+<td>{{ u.user_id }}</td>
+<td>{{ u.email }}</td>
+<td>{{ u.role }}</td>
+<td>
+<form action="/users/delete/{{ u.user_id }}" method="post" style="display:inline;">
+<button type="submit">Delete</button>
+</form>
+</td>
+</tr>
+{% endfor %}
+</table>
+
+<h3>Add User</h3>
+<form action="/users/add" method="post">
+Email: <input name="email" required>
+Password: <input name="password" required>
+Role: <select name="role">
+<option value="admin">Admin</option>
+<option value="instructor">Instructor</option>
+<option value="student">Student</option>
+</select>
+<button type="submit">Add</button>
+</form>
+
+<hr>
+
+<h2>Departments</h2>
+<table border="1">
+<tr><th>ID</th><th>Name</th><th>Building</th><th>Chair ID</th><th>Actions</th></tr>
+{% for d in departments %}
+<tr>
+<td>{{ d.dept_id }}</td>
+<td>{{ d.name }}</td>
+<td>{{ d.building }}</td>
+<td>{{ d.chair_id }}</td>
+<td>
+<form action="/departments/delete/{{ d.dept_id }}" method="post" style="display:inline;">
+<button type="submit">Delete</button>
+</form>
+</td>
+</tr>
+{% endfor %}
+</table>
+
+<h3>Add Department</h3>
+<form action="/departments/add" method="post">
+Name: <input name="name" required>
+Building: <input name="building">
+Chair ID: <input name="chair_id">
+<button type="submit">Add</button>
+</form>
+
+<hr>
+
+<h2>Courses</h2>
+<table border="1">
+<tr><th>ID</th><th>Name</th><th>Department</th><th>Description</th><th>Actions</th></tr>
+{% for c in courses %}
+<tr>
+<td>{{ c.c_id }}</td>
+<td>{{ c.name }}</td>
+<td>{{ c.dept_id }}</td>
+<td>{{ c.desc }}</td>
+<td>
+<form action="/courses/delete/{{ c.c_id }}" method="post" style="display:inline;">
+<button type="submit">Delete</button>
+</form>
+</td>
+</tr>
+{% endfor %}
+</table>
+
+<h3>Add Course</h3>
+<form action="/courses/add" method="post">
+Name: <input name="name" required>
+Department ID: <input name="dept_id">
+Description: <input name="desc">
+<button type="submit">Add</button>
+</form>
+
+<hr>
+
+<h2>Assign Instructors to Sections</h2>
+<table border="1">
+<tr><th>Section ID</th><th>Instructor ID</th><th>Role</th><th>Action</th></tr>
+{% for s in instructor_sections %}
+<tr>
+<td>{{ s.section_id }}</td>
+<td>{{ s.i_id }}</td>
+<td>{{ s.role_in_section }}</td>
+<td>
+<form action="/instructorSections/delete/{{ s.section_id }}/{{ s.i_id }}" method="post" style="display:inline;">
+<button type="submit">Delete</button>
+</form>
+</td>
+</tr>
+{% endfor %}
+</table>
+
+<h3>Assign Instructor</h3>
+<form action="/instructorSections/add" method="post">
+Section ID: <input name="section_id" required>
+Instructor ID: <input name="i_id" required>
+Role: <input name="role_in_section">
+<button type="submit">Assign</button>
+</form>
+
+</body>
+</html>
