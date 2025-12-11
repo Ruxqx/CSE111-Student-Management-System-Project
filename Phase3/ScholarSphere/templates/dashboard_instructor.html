@@ -2,12 +2,22 @@
 <html>
 <head>
     <title>Instructor Dashboard</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
 
 <h1>Welcome, {{ instructor.name }}</h1>
 
-<hr>
+
+<a href="/logout" style="
+    background-color: gold;
+    color: black;
+    padding: 10px 20px;
+    text-decoration: none;
+    border-radius: 5px;
+    font-weight: bold;
+    border: 1px solid #b8860b;
+">Logout</a>
 
 <h2>Instructor Info</h2>
 <form action="/instructor/update_info" method="post">
@@ -89,6 +99,6 @@
     <input name="location" placeholder="Location">
     <button type="submit">Add</button>
 </form>
-<a href="/logout">Logout</a>
+
 </body>
 </html>
