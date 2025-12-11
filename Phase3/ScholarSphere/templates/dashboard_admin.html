@@ -94,30 +94,73 @@ Description: <input name="desc">
 
 <hr>
 
-<h2>Assign Instructors to Sections</h2>
+
+
+<h2>Sections</h2>
 <table border="1">
-<tr><th>Section ID</th><th>Instructor ID</th><th>Role</th><th>Action</th></tr>
-{% for s in instructor_sections %}
 <tr>
-<td>{{ s.section_id }}</td>
-<td>{{ s.i_id }}</td>
-<td>{{ s.role_in_section }}</td>
-<td>
-<form action="/instructorSections/delete/{{ s.section_id }}/{{ s.i_id }}" method="post" style="display:inline;">
-<button type="submit">Delete</button>
-</form>
-</td>
+    <th>Section ID</th>
+    <th>Course ID</th>
+    <th>Semester</th>
+    <th>Year</th>
+    <th>Instructor</th>
+    <th>Actions</th>
+</tr>
+
+{% for s in sections %}
+<tr>
+    <td>{{ s.section_id }}</td>
+    <td>{{ s.c_id }}</td>
+    <td>{{ s.semester }}</td>
+    <td>{{ s.year }}</td>
+    <td>
+        {% if s.instructor_names %}
+            {{ s.instructor_names }}
+        {% else %}
+            Unassigned
+        {% endif %}
+    </td>
+
+    <td>
+        <form action="/sections/delete/{{ s.section_id }}" method="post" style="display:inline;">
+            <button type="submit">Delete</button>
+        </form>
+    </td>
 </tr>
 {% endfor %}
 </table>
 
+<h3>Add Section</h3>
+<form action="/sections/add" method="post">
+    Course ID: <input name="c_id" required>
+    Semester: <input name="semester" required>
+    Year: <input name="year" required>
+    <button type="submit">Add</button>
+</form>
+
+
 <h3>Assign Instructor</h3>
 <form action="/instructorSections/add" method="post">
-Section ID: <input name="section_id" required>
-Instructor ID: <input name="i_id" required>
-Role: <input name="role_in_section">
-<button type="submit">Assign</button>
+    Section ID: 
+    <select name="section_id" required>
+        {% for s in sections %}
+        <option value="{{ s.section_id }}">
+            {{ s.section_id }} - {{ s.c_id }} - {{ s.semester }} {{ s.year }}
+        </option>
+        {% endfor %}
+    </select>
+
+    Instructor: 
+    <select name="i_id" required>
+        {% for instr in instructors %}
+        <option value="{{ instr.i_id }}">{{ instr.name }}</option>
+        {% endfor %}
+    </select>
+
+    Role: <input name="role_in_section" placeholder="e.g., Lecturer">
+    <button type="submit">Assign</button>
 </form>
+
 
 </body>
 </html>

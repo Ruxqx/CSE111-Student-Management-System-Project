@@ -1,6 +1,94 @@
-<h1>Instructor Dashboard</h1>
-<ul>
-    <li><a href="/my_sections">My Sections</a></li>
-    <li><a href="/office_hours">My Office Hours</a></li>
-</ul>
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Instructor Dashboard</title>
+</head>
+<body>
+
+<h1>Welcome, {{ instructor.name }}</h1>
+
+<hr>
+
+<h2>Instructor Info</h2>
+<form action="/instructor/update_info" method="post">
+    Name: <input type="text" name="name" value="{{ instructor.name }}" required><br>
+    Office: <input type="text" name="office" value="{{ instructor.office }}" required><br>
+    Email: <input type="text" value="{{ instructor.email }}" readonly><br>
+    <button type="submit">Update Info</button>
+</form>
+
+
+<p>Email: {{ instructor.email }}</p>
+<p>Office: {{ instructor.office }}</p>
+
+
+<h2>Students in Your Sections</h2>
+{% for sec in sections %}
+    <h3>{{ sec.course_name }} - {{ sec.semester }} {{ sec.year }}</h3>
+    <table border="1">
+        <tr>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Grade</th>
+            <th>Update</th>
+        </tr>
+        {% for stu in students_by_section[sec.section_id] %}
+        <tr>
+            <td>{{ stu.name }}</td>
+            <td>{{ stu.email }}</td>
+            <td>
+                <form action="/enrollment/update_grade" method="post">
+                    <input type="hidden" name="enroll_id" value="{{ stu.enroll_id }}">
+                    <input type="text" name="grade" value="{{ stu.grade }}">
+                    <button type="submit">Update</button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+{% endfor %}
+
+
+<hr>
+
+<!-- ==========================
+     OFFICE HOURS
+=========================== -->
+<h2>Your Office Hours</h2>
+
+<table border="1" cellpadding="5">
+    <tr>
+        <th>Day</th>
+        <th>Start</th>
+        <th>End</th>
+        <th>Location</th>
+        <th>Delete</th>
+    </tr>
+
+    {% for oh in office_hours %}
+    <tr>
+        <td>{{ oh.day }}</td>
+        <td>{{ oh.start_time }}</td>
+        <td>{{ oh.end_time }}</td>
+        <td>{{ oh.location }}</td>
+        <td>
+            <form action="/delete_officehour/{{ oh.oh_id }}" method="POST">
+                <button type="submit">Delete</button>
+            </form>
+        </td>
+    </tr>
+    {% endfor %}
+</table>
+
+<h3>Add New Office Hour</h3>
+
+<form action="/add_officehour" method="POST">
+    <input name="day" placeholder="Day" required>
+    <input type="time" name="start" required>
+    <input type="time" name="end" required>
+    <input name="location" placeholder="Location">
+    <button type="submit">Add</button>
+</form>
 <a href="/logout">Logout</a>
+</body>
+</html>

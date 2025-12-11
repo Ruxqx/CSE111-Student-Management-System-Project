@@ -205,25 +205,90 @@ def dashboard():
         users = conn.execute("SELECT * FROM user").fetchall()
         departments = conn.execute("SELECT * FROM department").fetchall()
         courses = conn.execute("SELECT * FROM course").fetchall()
-        sections = conn.execute("SELECT * FROM section").fetchall()
+
+        # Get sections with assigned instructor (if any)
+        sections = conn.execute("""
+            SELECT 
+                s.section_id, s.c_id, s.semester, s.year, 
+                GROUP_CONCAT(i.name, ', ') AS instructor_names
+            FROM section s
+            LEFT JOIN instructorSection ins ON s.section_id = ins.section_id
+            LEFT JOIN instructor i ON ins.i_id = i.i_id
+            GROUP BY s.section_id
+        """).fetchall()
+
+
+
+        instructors = conn.execute("SELECT * FROM instructor").fetchall()
         instructor_sections = conn.execute("SELECT * FROM instructorSection").fetchall()
+
         conn.close()
-        return render_template("dashboard_admin.html",
-                               users=users,
-                               departments=departments,
-                               courses=courses,
-                               sections=sections,
-                               instructor_sections=instructor_sections)
+        return render_template(
+            "dashboard_admin.html",
+            users=users,
+            departments=departments,
+            courses=courses,
+            sections=sections,
+            instructors=instructors,
+            instructor_sections=instructor_sections
+        )
+
+
+
+
 
     # ----- INSTRUCTOR DASHBOARD -----
     elif role == "instructor":
+        instructor = conn.execute(
+            "SELECT * FROM instructor WHERE user_id=?", (session["user_id"],)
+        ).fetchone()
+
+        # Instructor's assigned sections
+        sections = conn.execute("""
+            SELECT s.section_id, s.year, s.semester, c.name AS course_name
+            FROM section s
+            JOIN course c ON s.c_id = c.c_id
+            JOIN instructorSection ins ON s.section_id = ins.section_id
+            WHERE ins.i_id = ?
+        """, (instructor["i_id"],)).fetchall()
+
+        # Students in each section
+        # Students in each section
+        students_by_section = {}
+        for sec in sections:
+            students = conn.execute("""
+                SELECT st.name, st.email, e.grade, e.enroll_id
+                FROM enrollment e
+                JOIN student st ON e.student_id = st.student_id
+                WHERE e.section_id = ?
+            """, (sec["section_id"],)).fetchall()
+            students_by_section[sec["section_id"]] = students
+
+
+        # Instructor’s office hours
+        office_hours = conn.execute(
+            "SELECT * FROM officeHours WHERE i_id=?", (instructor["i_id"],)
+        ).fetchall()
+
         conn.close()
-        return render_template("dashboard_instructor.html")
+        return render_template("dashboard_instructor.html",
+                               instructor=instructor,
+                               sections=sections,
+                               students_by_section=students_by_section,
+                               office_hours=office_hours)
 
     # ----- STUDENT DASHBOARD -----
     elif role == "student":
-        student = conn.execute("SELECT * FROM student WHERE user_id=?", (session["user_id"],)).fetchone()
+        # Get the student record
+        student = conn.execute(
+            "SELECT * FROM student WHERE user_id=?", (session["user_id"],)
+        ).fetchone()
 
+        if student is None:
+            conn.close()
+            return "No student record found. Please contact admin."
+
+        # Get this student's enrollments
         enrollments = conn.execute("""
             SELECT e.enroll_id, e.grade, s.section_id, s.year, s.semester, c.name AS course_name
             FROM enrollment e
@@ -232,12 +297,14 @@ def dashboard():
             WHERE e.student_id=?
         """, (student["student_id"],)).fetchall()
 
+        # Get all sections (optional, if you want to allow adding sections)
         sections = conn.execute("""
             SELECT s.section_id, c.name AS course_name, s.year, s.semester
             FROM section s
             JOIN course c ON s.c_id = c.c_id
         """).fetchall()
 
+        # Get instructors for student's sections
         instructor_info = conn.execute("""
             SELECT i.name, i.office, i.email, s.section_id
             FROM instructorSection ins
@@ -246,23 +313,213 @@ def dashboard():
             WHERE s.section_id IN (SELECT section_id FROM enrollment WHERE student_id=?)
         """, (student["student_id"],)).fetchall()
 
+        # Get office hours for instructors teaching student's sections
         office_hours = conn.execute("""
             SELECT oh.*, i.name
             FROM officeHours oh
             JOIN instructor i ON oh.i_id = i.i_id
-            WHERE i.i_id IN (SELECT i_id FROM instructorSection)
-        """).fetchall()
+            WHERE i.i_id IN (
+                SELECT i_id FROM instructorSection 
+                WHERE section_id IN (SELECT section_id FROM enrollment WHERE student_id=?)
+            )
+        """, (student["student_id"],)).fetchall()
 
         conn.close()
-        return render_template("dashboard_student.html",
-                               student=student,
-                               enrollments=enrollments,
-                               sections=sections,
-                               instructor_info=instructor_info,
-                               office_hours=office_hours)
+
+        return render_template(
+            "dashboard_student.html",
+            student=student,
+            enrollments=enrollments,
+            sections=sections,
+            instructor_info=instructor_info,
+            office_hours=office_hours
+        )
+
+
+    # ----- UNKNOWN ROLE -----
     else:
         conn.close()
         return "Unknown role"
+    
+# ---------- UPDATE INSTRUCTOR INFO ----------
+@app.route("/instructor/update_info", methods=["POST"])
+@login_required
+def update_instructor_info():
+    if session["role"] != "instructor":
+        return "Unauthorized", 403
+
+    new_name = request.form["name"]
+    new_office = request.form["office"]
+
+    conn = get_db_connection()
+    conn.execute(
+        "UPDATE instructor SET name=?, office=? WHERE user_id=?",
+        (new_name, new_office, session["user_id"])
+    )
+    conn.commit()
+    conn.close()
+    return redirect("/dashboard")
+
+
+    
+# ---------- UPDATE STUDENT GRADE ----------
+@app.route("/enrollment/update_grade", methods=["POST"])
+@login_required
+def update_grade():
+    if session["role"] != "instructor":
+        return "Unauthorized", 403
+
+    enroll_id = request.form.get("enroll_id")
+    grade = request.form.get("grade")
+
+    conn = get_db_connection()
+    conn.execute("UPDATE enrollment SET grade=? WHERE enroll_id=?", (grade, enroll_id))
+    conn.commit()
+    conn.close()
+    return redirect("/dashboard")
+
+
+@app.route("/sections/delete/<int:section_id>", methods=["POST"])
+@login_required
+def delete_section(section_id):
+    if session["role"] != "admin":
+        return "Unauthorized"
+
+    conn = get_db_connection()
+    conn.execute("DELETE FROM section WHERE section_id=?", (section_id,))
+    conn.commit()
+    conn.close()
+    return redirect("/dashboard")
+
+
+@app.route("/sections/add", methods=["POST"])
+@login_required
+def add_section():
+    if session["role"] != "admin":
+        return "Unauthorized"
+
+    c_id = request.form["c_id"]
+    year = request.form["year"]
+    semester = request.form["semester"]
+
+    conn = get_db_connection()
+    conn.execute(
+        "INSERT INTO section (c_id, year, semester) VALUES (?, ?, ?)",
+        (c_id, year, semester)
+    )
+    conn.commit()
+    conn.close()
+    return redirect("/dashboard")
+
+
+@app.route("/remove_student/<int:section_id>", methods=["POST"])
+@login_required
+def remove_student(section_id):
+    if session["role"] != "instructor":
+        return "Unauthorized", 403
+
+    student_id = request.form["student_id"]
+
+    conn = get_db_connection()
+
+    # Check if instructor owns this section
+    instructor = conn.execute(
+        "SELECT * FROM instructor WHERE user_id=?", (session["user_id"],)
+    ).fetchone()
+
+    sec = conn.execute("""
+        SELECT * FROM instructorSection
+        WHERE section_id=? AND i_id=?
+    """, (section_id, instructor["i_id"])).fetchone()
+
+    if sec is None:
+        conn.close()
+        return "Not allowed", 403
+
+    # Remove the enrollment
+    conn.execute("""
+        DELETE FROM enrollment 
+        WHERE student_id=? AND section_id=?
+    """, (student_id, section_id))
+
+    conn.commit()
+    conn.close()
+    return redirect("/dashboard")
+
+
+@app.route("/add_officehour", methods=["POST"])
+@login_required
+def add_officehour():
+    if session["role"] != "instructor":
+        return "Unauthorized", 403
+
+    conn = get_db_connection()
+
+    instructor = conn.execute(
+        "SELECT * FROM instructor WHERE user_id=?", (session["user_id"],)
+    ).fetchone()
+
+    if instructor is None:
+        conn.close()
+        return "Instructor not found", 400
+
+    day = request.form["day"]
+    start = request.form["start"]
+    end = request.form["end"]
+    location=request.form["location"]
+
+    conn.execute(
+        "INSERT INTO officeHours (i_id, day, start_time, end_time,location) VALUES (?, ?, ?, ?,?)",
+        (instructor["i_id"], day, start, end,location)
+    )
+    conn.commit()
+    conn.close()
+
+    return redirect("/dashboard")
+
+
+
+@app.route("/delete_officehour/<int:oh_id>", methods=["POST"])
+@login_required
+def delete_officehour(oh_id):
+    if session["role"] != "instructor":
+        return "Unauthorized", 403
+
+    conn = get_db_connection()
+
+    # Verify the officehour belongs to this instructor
+    instructor = conn.execute(
+        "SELECT * FROM instructor WHERE user_id=?", (session["user_id"],)
+    ).fetchone()
+
+    officehour = conn.execute(
+        "SELECT * FROM officeHours WHERE oh_id=?", (oh_id,)
+    ).fetchone()
+
+    if officehour and officehour["i_id"] == instructor["i_id"]:
+        conn.execute("DELETE FROM officeHours WHERE oh_id=?", (oh_id,))
+        conn.commit()
+
+    conn.close()
+    return redirect("/dashboard")
+
+@app.route("/student/edit", methods=["POST"])
+@login_required
+def student_edit():
+    if session["role"] != "student":
+        return "Unauthorized", 403
+
+    name = request.form["name"]
+    major = request.form["major"]
+
+    conn = get_db_connection()
+    student = conn.execute("SELECT * FROM student WHERE user_id=?", (session["user_id"],)).fetchone()
+    conn.execute("UPDATE student SET name=?, major=? WHERE student_id=?", (name, major, student["student_id"]))
+    conn.commit()
+    conn.close()
+
+    return redirect("/dashboard")
+
 
 # ---------- STUDENT ENROLLMENT ----------
 @app.route("/enrollments/add", methods=["POST"])

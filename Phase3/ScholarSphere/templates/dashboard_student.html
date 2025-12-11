@@ -14,6 +14,12 @@
 </head>
 <body>
     <h1>Welcome, {{ student.name }}!</h1>
+    <h3>Edit Profile</h3>
+<form action="/student/edit" method="post">
+    Name: <input type="text" name="name" value="{{ student.name }}" required>
+    Major: <input type="text" name="major" value="{{ student.major }}">
+    <button type="submit">Update</button>
+</form>
 
     <!-- ENROLLED COURSES -->
     <h2>My Courses</h2>
